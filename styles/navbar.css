@@ -1,0 +1,29 @@
+
+.sidenav-margins {
+  min-width: 300px;
+  margin-top: 60px;
+  position: fixed;
+}
+.content-margins {
+  margin-left: 300px;
+}
+
+@media (max-width: 767px) {
+    .navbar-fixed-top {
+        position: relative;
+        top: auto;
+    }
+    .navbar-collapse {
+        max-height: none;
+    }
+    body {
+        margin: 0;
+    }
+    .sidenav-margins {
+      margin: 0;
+      position: relative;
+    }
+    .content-margins {
+      margin: 0;
+    }
+}
