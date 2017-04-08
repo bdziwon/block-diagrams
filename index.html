@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <title>Algorytmy</title>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css">
+  <link rel="stylesheet" href="../styles/navbar.css">
+  <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
+  <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+  <script src="../scripts/index.js"></script>
+
+</head>
+<body>
+  <nav class="navbar navbar-default navbar-fixed-top navbar-collapse">
+    <div class="container-fluid">
+      <div class="navbar-header">
+        <a class="navbar-brand" href="#">Algorytmy</a>
+      </div>
+      <ul class="nav navbar-nav">
+          <li class="dropdown">
+            <a class="dropdown-toggle" type="button" data-toggle="dropdown">Nowy
+            <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="#">Schemat blokowy</a></li>
+            </ul>
+          </li>
+          <li class="dropdown">
+            <a class="dropdown-toggle" type="button" data-toggle="dropdown">Edycja
+            <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li>
+                <a href="#">
+                  <span class="glyphicon glyphicon-menu-left"></span>
+                  <span>Cofnij</span>
+                </a>
+              </li>
+              <li>
+                <a href="#">
+                  <span class="glyphicon glyphicon-menu-right"></span>
+                  <span>Do przodu</span>
+                </a>
+              </li>
+            </ul>
+          </li>
+
+          <li class="dropdown">
+            <a class="dropdown-toggle" type="button" data-toggle="dropdown">Opcje
+            <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="#">Generuj kod</a></li>
+              <li><a href="#">Eksportuj</a></li>
+              <li><a href="#">Wyczyść</a></li>
+            </ul>
+          </li>
+
+          <li class="dropdown">
+            <a class="dropdown-toggle" type="button" data-toggle="dropdown">Dodaj blok
+            <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="#">Początek algorytmu</a></li>
+              <li><a href="#">Blok procesu</a></li>
+              <li><a href="#">Blok decyzyjny</a></li>
+              <li><a href="#">Blok odczytu/zapisu danych</a></li>
+              <li><a href="#">Koniec algorytmu</a></li>
+            </ul>
+          </li>
+
+          <li class="dropdown">
+            <a class="dropdown-toggle" type="button" data-toggle="dropdown">Przykłady
+            <span class="caret"></span></a>
+            <ul class="dropdown-menu">
+              <li><a href="#">Przykład nr 1</a></li>
+              <li><a href="#">Przykład nr 2</a></li>
+              <li><a href="#">Przykład nr 3</a></li>
+            </ul>
+          </li>
+      </ul>
+    </div>
+  </nav>
+<div class="container-fluid">
+  <div class="row">
+    <div class="col-sm-2 sidenav sidenav-margins">
+      <p><div id="draggable" class="ui-widget-content" 
+style="width: 20px; height: 20px; background:blue; display:block; float:left; border:0px "
+ >
+    <div id="draggable" class="ui-widget-content" style="width: 20px; height: 20px; background:blue; display:block; float:left; border:0px "
+></div></div></p>
+      <p><a href="#">Blok początkowy</a></p>
+      <p><a href="#">Blok procesu</a></p>
+      <p><a href="#">Blok decyzyjny</a></p>
+      <p><a href="#">Blok odczytu/zapisu danych</a></p>
+      <p><a href="#">Koniec algorytmu</a></p>
+    </div>
+    <div id="container" class="container-fluid content-margins" style="background-color: aquamarine; height: 1000px; margin-top: 50px">
+    </div>
+  </div>
+</div>
+
+</body>
+</html>
