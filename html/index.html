@@ -1,4 +1,4 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="en">
 <head>
   <title>Algorytmy</title>
@@ -8,6 +8,7 @@
   <link rel="stylesheet" href="../styles/navbar.css">
   <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.1.1/jquery.min.js"></script>
   <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+<script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
   <script src="../scripts/index.js"></script>
 
 </head>
@@ -58,7 +59,7 @@
             <a class="dropdown-toggle" type="button" data-toggle="dropdown">Dodaj blok
             <span class="caret"></span></a>
             <ul class="dropdown-menu">
-              <li><a href="#">Początek algorytmu</a></li>
+             <li><a href="#">Początek algorytmu</a></li>
               <li><a href="#">Blok procesu</a></li>
               <li><a href="#">Blok decyzyjny</a></li>
               <li><a href="#">Blok odczytu/zapisu danych</a></li>
@@ -81,13 +82,22 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col-sm-2 sidenav sidenav-margins">
-      <p><a href="#">Blok początkowy</a></p>
-      <p><a href="#">Blok procesu</a></p>
-      <p><a href="#">Blok decyzyjny</a></p>
-      <p><a href="#">Blok odczytu/zapisu danych</a></p>
-      <p><a href="#">Koniec algorytmu</a></p>
+      <p><div id="draggable" class="ui-widget-content" 
+style="width: 100px; height: 50px; background:black; display:block; float:left; border:2px ; border-color : white; border-radius: 25px; "> 
+    </div><br><br><br></p>
+      <p><div id="draggable1" class="ui-widget-content" 
+style="width: 100px; height: 50px; background:black; display:block; float:left; border:2px ; border-color : yellow "> 
+    </div><br><br><br></p>
+    <p><div id="draggable2" class="ui-widget-content" 
+style="width: 50px; height: 50px; background:black; display:block; float:left; border:2px ; transform:rotate(45deg); margin-left: 20px; border-color : white"> 
+    </div><br><br><br></p>
+      <p><div id="draggable3" class="ui-widget-content" 
+style="width: 100px; height: 50px; background:black; display:block; float:left; border:2px ; transform: skewX( -45deg ); margin-left :20px; border-color : white"> 
+    </div><br><br><br></p>
+      
+   
     </div>
-    <div class="container-fluid content-margins" style="background-color: aquamarine; height: 1000px; margin-top: 50px">
+    <div id="container" class="container-fluid content-margins" style="background-color: aquamarine; height: 1000px; margin-top: 50px ">
     </div>
   </div>
 </div>
