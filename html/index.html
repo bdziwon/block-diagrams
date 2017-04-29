@@ -82,21 +82,32 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col-sm-2 sidenav sidenav-margins">
-      <p><div id="draggable" class="ui-widget-content" 
-style="width: 100px; height: 50px; background:black; display:block; float:left; border:2px ; border-color : white; border-radius: 25px; "> 
-    </div><br><br><br></p>
-      <p><div id="draggable1" class="ui-widget-content" 
-style="width: 100px; height: 50px; background:black; display:block; float:left; border:2px ; border-color : yellow "> 
-    </div><br><br><br></p>
-    <p><div id="draggable2" class="ui-widget-content" 
-style="width: 50px; height: 50px; background:black; display:block; float:left; border:2px ; transform:rotate(45deg); margin-left: 20px; border-color : white"> 
-    </div><br><br><br></p>
-      <p><div id="draggable3" class="ui-widget-content" 
-style="width: 100px; height: 50px; background:black; display:block; float:left; border:2px ; transform: skewX( -45deg ); margin-left :20px; border-color : white"> 
-    </div><br><br><br></p>
-      
-   
+      <div class="row">
+        <div id="blok-startowy" class="ui-widget-content col-center blok blok-startowy">
+          START/KONIEC
+        </div>
+      </div>
+      <div class="row">
+        <div id="draggable1" class="ui-widget-content blok blok-procesu">
+        </div>
+      </div>
+      <div class="row">
+        <div id="draggable2" class="ui-widget-content blok blok-decyzyjny">
+        </div>
+      </div>
+      <div class="row">
+        <div id="draggable3" class="ui-widget-content blok blok-wejscia-wyjscia">
+        </div>
+      </div>
     </div>
+    <div class="col-sm-2 sidenav sidenav-margins-right">
+      <div id="pressedBlockInfo" class="row center-block">
+        <div class="jumbotron">
+          <h3>Naciśnij na blok po dodaniu aby zobaczyć więcej informacji</h3>
+        </div>
+      </div>
+    </div>
+
     <div id="container" class="container-fluid content-margins" style="background-color: aquamarine; height: 1000px; margin-top: 50px ">
     </div>
   </div>

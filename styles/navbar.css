@@ -4,8 +4,70 @@
   margin-top: 60px;
   position: fixed;
 }
+.sidenav-margins-right {
+  min-width: 300px;
+  margin-top: 60px;
+  position: fixed;
+  right: 0;
+}
 .content-margins {
-  margin-left: 300px;
+  margin-left: 235px;
+  margin-right: 300px;
+}
+
+.blok {
+  width: 150px;
+  height: 100px;
+  background: #4DB6AC;
+  color: white;
+  float:left;
+  margin-bottom: 20px;
+  margin-left: 30px;
+}
+
+.selectedBlok {
+  background: #00897B;
+}
+
+.blok-startowy {
+  width: 200px;
+  height: 75px;
+  line-height: 75px;
+  text-align: center;
+  vertical-align: middle;
+  border-radius: 25px;
+}
+
+.blok-decyzyjny {
+  width: 100px;
+  height: 100px;
+  line-height: 100px;
+  text-align: center;
+  vertical-align: middle;
+  margin-top: 20px;
+  transform:rotate(45deg);
+}
+
+.blok-wejscia-wyjscia {
+  width: 150px;
+  height: 75px;
+  line-height: 100px;
+  text-align: center;
+  vertical-align: middle;
+  margin-top: 20px;
+  
+  transform: skewX( -45deg );
+}
+
+
+.disabled-div {
+    /*pointer-events: none;*/
+    opacity: 0.4;
+}
+
+.enabled-div {
+  /*pointer-events: all;*/
+  opacity: 1;
 }
 
 @media (max-width: 767px) {
