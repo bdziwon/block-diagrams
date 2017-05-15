@@ -6,15 +6,15 @@ $(function () {
         helper: "clone",
         cursor: 'move'
     });
-    $("#draggable1").draggable({ //TODO: pozmieniać id innych bloków jak wyżej
+    $("#blok-procesu").draggable({ //TODO: pozmieniać id innych bloków jak wyżej
         helper: "clone",
         cursor: 'move'
     });
-    $("#draggable2").draggable({
+    $("#blok-decyzyjny").draggable({
         helper: "clone",
         cursor: 'move'
     });
-     $("#draggable3").draggable({
+     $("#blok-wejscia-wyjscia").draggable({
         helper: "clone",
         cursor: 'move'
     });
@@ -49,10 +49,18 @@ $(function () {
                 if ($canvasElement.hasClass('blok-startowy')) {
                   insertStartAndEndBlock($canvasElement);
                 }
+                if ($canvasElement.hasClass('blok-wejscia-wyjscia')) {
+                  insertIOBlock($canvasElement);
+                }
             }
         }
     });
 });
+
+function insertIOBlock($canvasElement) {
+  $canvasElement.html("<p>pusty</p>");
+  blocksOnBoard.push($canvasElement);
+}
 
 function insertStartAndEndBlock($canvasElement) {
   var sameBlocks = 0;
@@ -122,8 +130,191 @@ function openDivMenu($div) {
   selectedBlock = $div;
   $div.addClass('selectedBlok');
 
-  //TODO: więcej opcji na prawym pasku
-  $('#pressedBlockInfo').html('<button id="removeDivButton" type="button">Usuń blok</button>');
+  //poszczególne menu
+  if ($div.hasClass('blok-startowy')) {
+    openStartAndEndBlockMenu($div);
+    return;
+  }
+  if($div.hasClass('blok-wejscia-wyjscia')) {
+    openIOBlockMenu($div);
+    return;
+  }
+  if($div.hasClass('blok-procesu')) {
+
+  }
+  if ($div.hasClass('blok-decyzyjny')){
+
+  }
+
+  $('#pressedBlockInfo').html("<p><button class='btn btn-danger' id='removeDivButton' type='button'>Usuń blok</button></p>");
+  $(document).ready(function(){
+    //usuwanie diva
+    $('#removeDivButton').click(function() {
+      closeDivMenu($div);
+      removeDiv($div);
+    });
+  });
+}
+
+function openIOBlockMenu($div) {
+  var html = "";
+  var header = "Blok wejścia/wyjścia";
+  var description = "Umożliwia m.in. wczytywanie danych od użytkownika.";
+  var saveButton = "<button class='btn btn-primary' id='saveDivButton' type='button'>Zapisz</button>";
+  var deleteButton = "<button class='btn btn-danger' id='removeDivButton' type='button'>Usuń blok</button>";
+  var rows = 1;
+
+  html = "" +
+  "<div class='page-header'>"+
+    "<h3>"+header+"</h3>"+
+    "<p><i>"+description+"</i></p>"+
+    "<h3>"+"Opcje"+"</h3>"+
+    "<h4>"+"Wypisz/Wczytaj daną"+"</h4>"+
+    "<p>"+"Umieść tekst w cudzysłowiu jeśli chcesz go wypisać zamiast zmiennej"+"</p>"+
+    "<table class='table table-hover'>"+
+      "<thead>"+
+        "<tr>"+
+          "<th>Nazwa zmiennej</th>"+
+          "<th>Działanie</th>"+
+        "</tr>"+
+      "</thead>"+
+      "<tbody id='table-body'>"+
+        "<tr>"+
+          "<td>"+
+          "<div class='form-group'>"+
+              "<input id='var-"+rows+"' type='text' pattern='^[a-zA-Z0-9 ]' class='form-control'>"+
+          "</div>"+
+          "</td>"+
+          "<td>"+
+            "<div class='form-group'>"+
+              "<select id='value-"+rows+"' class='form-control'>"+
+                "<option>wypisz</option>"+
+                "<option>wczytaj</option>"+
+              "</select>"+
+            "</div>"+
+          "</td>"+
+        "</tr>"+
+      "</tbody>"+
+    "</table>"+
+    "<p><button id='addRowButton' type='button' class='btn btn-primary'>"+
+      "<span class='glyphicon glyphicon-plus'></span>  Dodaj wiersz"+
+    "</button></p>"+
+    "<div class='btn-group'>"+
+      ""+saveButton+
+      ""+deleteButton+
+    "</div>"+
+  "<div>";
+
+  rows++;
+  $('#pressedBlockInfo').html(html);
+
+  $(document).ready(function(){
+    //usuwanie diva
+    $('#removeDivButton').click(function() {
+      closeDivMenu($div);
+      removeDiv($div);
+    });
+
+    //dodawanie wiersza
+    $('#addRowButton').click(function(){
+      var html = $("#table-body").html()+
+      "<tr>"+
+        "<td>"+
+        "<div class='form-group'>"+
+            "<input id='var-"+rows+"' type='text' pattern='^[a-zA-Z0-9 ]' class='form-control'>"+
+        "</div>"+
+        "</td>"+
+        "<td>"+
+          "<div class='form-group'>"+
+            "<select id='value-"+rows+"' class='form-control'>"+
+              "<option value='wypisz'>wypisz</option>"+
+              "<option value='wczytaj'>wczytaj</option>"+
+            "</select>"+
+          "</div>"+
+        "</td>"+
+      "</tr>";
+
+      rows++;
+      $("#table-body").html(html);
+    });
+
+    $('#saveDivButton').click(function() {
+      var i = 1;
+      var blockContent = "<div class='bubble'><p><br/>";
+      var errors = "";
+
+      for (i = 1; i < rows; i++) {
+
+        var varname = $('#var-'+i).val();
+        var value = $('#value-'+i).find('option:selected').text();
+
+        if (value == 'wczytaj') {
+          if (properVariableName(varname)) {
+            blockContent += "wczytaj("+varname+");<br/>";
+            continue;
+          }
+          errors += "Nazwa zmiennej niedozwolona ("+varname+")";
+          continue;
+        }
+
+        if (value == 'wypisz') {
+          //sprawdzanie czy to tekst do wypisania
+          if ((varname.charAt(0) == '\"') && (varname.charAt(varname.length-1) == '\"')) {
+            blockContent += "wypisz("+varname+");<br/>";
+            continue;
+          }
+
+          if (properVariableName(varname)) {
+            blockContent += "wypisz("+varname+");<br/>";
+            continue;
+          } else {
+            errors += "Nazwa zmiennej niedozwolona ("+varname+")";
+          }
+        }
+      }
+      blockContent += "<br/></p></div>";
+      var lines = blockContent.split("<br/>").length;
+      $div.height(lines * 15);
+      $div.width($div.height() + 80);
+      $div.html(blockContent);
+
+      console.log(errors);
+
+    });
+
+
+  });
+}
+
+function properVariableName(varname) {
+  //TODO: sprawdzanie czy nazwa zmiennej jest poprawna
+  return true;
+}
+
+function openStartAndEndBlockMenu($div) {
+  var html = "";
+  var header = "";
+  var description = "";
+  var deleteButton = "";
+  if ($div.text() == "START") {
+    header = "Blok START";
+    description = "Stanowi początek algorytmu, może być tylko jeden";
+  } else {
+    header = "Blok KONIEC";
+    description = "Stanowi koniec algorytmu";
+  }
+  deleteButton = "<p><button class='btn btn-danger' id='removeDivButton' type='button'>Usuń blok</button></p>";
+
+  html = "" +
+  "<div class='page-header'>"+
+    "<h3>"+header+"</h3>"+
+    "<p><i>"+description+"</i></p>"+
+    "<h3>"+"Opcje"+"</h3>"+
+    ""+deleteButton+
+  "<div>";
+
+  $('#pressedBlockInfo').html(html);
+
   $(document).ready(function(){
     //usuwanie diva
     $('#removeDivButton').click(function() {
