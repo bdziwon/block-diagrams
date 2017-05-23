@@ -6,7 +6,7 @@ $(function () {
         helper: "clone",
         cursor: 'move'
     });
-    $("#blok-procesu").draggable({ //TODO: pozmieniać id innych bloków jak wyżej
+    $("#blok-procesu").draggable({
         helper: "clone",
         cursor: 'move'
     });
@@ -171,30 +171,13 @@ function openIOBlockMenu($div) {
     "<h3>"+"Opcje"+"</h3>"+
     "<h4>"+"Wypisz/Wczytaj daną"+"</h4>"+
     "<p>"+"Umieść tekst w cudzysłowiu jeśli chcesz go wypisać zamiast zmiennej"+"</p>"+
-    "<table class='table table-hover'>"+
-      "<thead>"+
+    "<table id='table' class='table table-hover'>"+
+      "<th>"+
         "<tr>"+
           "<th>Nazwa zmiennej</th>"+
           "<th>Działanie</th>"+
         "</tr>"+
-      "</thead>"+
-      "<tbody id='table-body'>"+
-        "<tr>"+
-          "<td>"+
-          "<div class='form-group'>"+
-              "<input id='var-"+rows+"' type='text' pattern='^[a-zA-Z0-9 ]' class='form-control'>"+
-          "</div>"+
-          "</td>"+
-          "<td>"+
-            "<div class='form-group'>"+
-              "<select id='value-"+rows+"' class='form-control'>"+
-                "<option>wypisz</option>"+
-                "<option>wczytaj</option>"+
-              "</select>"+
-            "</div>"+
-          "</td>"+
-        "</tr>"+
-      "</tbody>"+
+      "</th>"+
     "</table>"+
     "<p><button id='addRowButton' type='button' class='btn btn-primary'>"+
       "<span class='glyphicon glyphicon-plus'></span>  Dodaj wiersz"+
@@ -205,7 +188,27 @@ function openIOBlockMenu($div) {
     "</div>"+
   "<div>";
 
-  rows++;
+  var blockContent = $div.text().split(";");
+  $(document).ready(function(){
+    if (blockContent.length > 1) {
+
+      for (var i = 0; i < blockContent.length; i++) {
+        var content = blockContent[i].split("(");
+        if (content.length >= 2) {
+          var value = content[0];
+          var varname = content[1].replace(")","");
+        } else {
+          continue;
+        }
+
+        // $(document).ready(function(){
+          var table = document.getElementById('table');
+          addIOTableRow(table,varname,value);
+        // });
+      }
+    }
+  });
+
   $('#pressedBlockInfo').html(html);
 
   $(document).ready(function(){
@@ -217,72 +220,52 @@ function openIOBlockMenu($div) {
 
     //dodawanie wiersza
     $('#addRowButton').click(function(){
-      var html = $("#table-body").html()+
-      "<tr>"+
-        "<td>"+
-        "<div class='form-group'>"+
-            "<input id='var-"+rows+"' type='text' pattern='^[a-zA-Z0-9 ]' class='form-control'>"+
-        "</div>"+
-        "</td>"+
-        "<td>"+
-          "<div class='form-group'>"+
-            "<select id='value-"+rows+"' class='form-control'>"+
-              "<option value='wypisz'>wypisz</option>"+
-              "<option value='wczytaj'>wczytaj</option>"+
-            "</select>"+
-          "</div>"+
-        "</td>"+
-      "</tr>";
+      var table = document.getElementById('table');
+      addIOTableRow(table);
 
-      rows++;
-      $("#table-body").html(html);
     });
 
     $('#saveDivButton').click(function() {
-      var i = 1;
       var blockContent = "<div class='bubble'><p><br/>";
       var errors = "";
 
-      for (i = 1; i < rows; i++) {
-
-        var varname = $('#var-'+i).val();
-        var value = $('#value-'+i).find('option:selected').text();
+      $("tr.move").each(function() {
+        $this = $(this);
+        var varname = $this.find("input.var").val();
+        var value = $this.find("select.value").val();
 
         if (value == 'wczytaj') {
           if (properVariableName(varname)) {
             blockContent += "wczytaj("+varname+");<br/>";
-            continue;
+            return true;
           }
           errors += "Nazwa zmiennej niedozwolona ("+varname+")";
-          continue;
+          return true;
         }
 
         if (value == 'wypisz') {
           //sprawdzanie czy to tekst do wypisania
           if ((varname.charAt(0) == '\"') && (varname.charAt(varname.length-1) == '\"')) {
             blockContent += "wypisz("+varname+");<br/>";
-            continue;
+            return true;
           }
 
           if (properVariableName(varname)) {
             blockContent += "wypisz("+varname+");<br/>";
-            continue;
+            return true;
           } else {
             errors += "Nazwa zmiennej niedozwolona ("+varname+")";
           }
         }
-      }
+      });
+
       blockContent += "<br/></p></div>";
       var lines = blockContent.split("<br/>").length;
       $div.height(lines * 15);
       $div.width($div.height() + 80);
       $div.html(blockContent);
-
       console.log(errors);
-
     });
-
-
   });
 }
 
@@ -337,4 +320,57 @@ function closeDivMenu($div) {
   );
 
   }
+}
+
+
+function move(sender) {
+  console.log('test');
+  var row = $(sender).closest('tr');
+  if ($(sender).hasClass('up')) {
+    if (row.prev().hasClass('move')) {
+      row.prev().before(row);
+    }
+  } else {
+    row.next().after(row);
+  }
+}
+
+function addIOTableRow(table, varname, value) {
+  var row = table.insertRow(table.rows.length);
+  row.className += " move";
+  var inputCell = row.insertCell(0);
+  var optionCell = row.insertCell(1);
+
+  if (varname == undefined) {
+    varname = "";
+  }
+  if (value == undefined) {
+    value = 'wypisz';
+  }
+  inputCell.innerHTML =
+  "<div class='form-group'>"+
+      "<input type='text' value='"+varname+"' pattern='^[a-zA-Z0-9 ]' class='var form-control'>"+
+      "<div class='btn-group'>"+
+        "<input type='button' value='W górę' class='btn btn-primary move up' onclick='move(this)'/>"+
+        "<input type='button' value='W dół' class='btn btn-primary move down' onclick='move(this)'/>"+
+      "</div>"
+  "</div>";
+
+  optionCell.innerHTML =
+  "<div class='form-group'>"+
+      "<select class='form-control value'>"+
+        "<option value='wypisz'>wypisz</option>"+
+        "<option value='wczytaj'>wczytaj</option>"+
+      "</select>"+
+      "<input type='button' value='Usuń' class='btn btn-danger move' onclick='deleteRow(this)'/>"+
+
+    "</div>";
+
+    $(optionCell).find("select option[value='"+value+"']").attr("selected","selected");
+
+}
+
+function deleteRow(r) {
+    var i = r.parentNode.parentNode.parentNode.rowIndex;
+    document.getElementById("table").deleteRow(i);
 }
