@@ -35,14 +35,23 @@
     overflow-y: scroll;
 }
 
+.codeTextArea {
+  max-width: 100%;
+  width: 100%;
+
+}
+
 .blok p {
   vertical-align: middle;
 }
 
 .bubble {
-  transform: skewX( 45deg );
   width: 100%;
   height: 100%;
+}
+
+.process-skewx {
+  transform: skewX( 45deg );
 }
 
 .selectedBlok {
@@ -55,6 +64,7 @@
   text-align: center;
   vertical-align: middle;
   border-radius: 25px;
+  line-height: 75px;
 }
 
 .blok-decyzyjny {
@@ -67,6 +77,18 @@
   transform:rotate(45deg);
 }
 
+.blok-procesu {
+  width: 95px;
+  height: 45px;
+  text-align: center;
+  vertical-align: middle;
+  margin-top: 20px;
+  line-height: 15px;
+  overflow-y: auto;
+  overflow-x: auto;
+  white-space: pre-wrap;
+
+}
 
 .blok-wejscia-wyjscia {
   width: 95px;

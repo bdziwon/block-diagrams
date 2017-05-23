@@ -69,22 +69,17 @@ function insertStartAndEndBlock($canvasElement) {
   //sprawdzanie istniejących bloków start/koniec
   $(blocksOnBoard).each(function(i, div) {
     if (div.hasClass('blok-startowy')) {
-      sameBlocks++;
-      text = div.text();
+      if (div.text() == "START") {
+        sameBlocks++;
+        text = div.text();
+      }
     }
   });
 
-  //jeśli istnieją dwa bloki start/koniec to nie dodajemy
-  if (sameBlocks >= 2) {
+  //jeśli istnieje już blok start to nie dodajemy to nie dodajemy
+  if (sameBlocks >= 2 && canvasElement.text() == "START") {
     removeDiv($canvasElement);
     return;
-  }
-
-  //jeśli istnieje już jeden blok, to znaczy że po operacji będą dwa
-  //więc blokujemy dodawanie bloków start/koniec
-  if (sameBlocks == 1) {
-    $('#blok-startowy').addClass('disabled-div');
-    $('#blok-startowy').removeClass('enabled-div');
   }
 
   //jeśli nie ma żadnego bloku to tworzymy blok startu
@@ -123,6 +118,11 @@ function removeDiv($div) {
 }
 
 function openDivMenu($div) {
+
+  //przesuwanie diva na szczyt
+  $div.parent().append($div);
+
+
   //zamykanie poprzednio wybranego diva
   closeDivMenu(selectedBlock);
 
@@ -140,7 +140,8 @@ function openDivMenu($div) {
     return;
   }
   if($div.hasClass('blok-procesu')) {
-
+    openProcessBlockMenu($div);
+    return;
   }
   if ($div.hasClass('blok-decyzyjny')){
 
@@ -156,13 +157,55 @@ function openDivMenu($div) {
   });
 }
 
+function openProcessBlockMenu($div) {
+  var html    = "";
+  var header  = "Blok procesu";
+  var description   = "Umożliwia takie działania jak deklaracja zmiennych, przypisywanie, oraz działania arytmetyczno-logiczne"
+  var saveButton    = "<button class='btn btn-primary' id='saveDivButton' type='button'>Zapisz</button>";
+  var deleteButton  = "<button class='btn btn-danger' id='removeDivButton' type='button'>Usuń blok</button>";
+  html = "" +
+  "<div class='page-header'>"+
+    "<h3>"+header+"</h3>"+
+    "<p><i>"+description+"</i></p>"+
+    "<h3>"+"Opcje"+"</h3>"+
+    "<h4>"+"Wpisz kod"+"</h4>"+
+    "<p>"+"Każdą linię zakończ średnikiem"+"</p>"+
+    "<textarea class='codeTextArea'></textarea>"+
+    "<div class='btn-group'>"+
+      ""+saveButton+
+      ""+deleteButton+
+    "</div>"+
+  "</div>"
+
+  $('#pressedBlockInfo').html(html);
+
+
+
+  $(document).ready(function(){
+
+    var blockContent = $div.text();
+    if (blockContent != undefined) {
+        $(".codeTextArea").text(blockContent);
+    }
+    //usuwanie diva
+    $('#removeDivButton').click(function() {
+      closeDivMenu($div);
+      removeDiv($div);
+    });
+
+    $('#saveDivButton').click(function() {
+      saveProcessBlock($div);
+    });
+  });
+
+}
+
 function openIOBlockMenu($div) {
   var html = "";
   var header = "Blok wejścia/wyjścia";
   var description = "Umożliwia m.in. wczytywanie danych od użytkownika.";
   var saveButton = "<button class='btn btn-primary' id='saveDivButton' type='button'>Zapisz</button>";
   var deleteButton = "<button class='btn btn-danger' id='removeDivButton' type='button'>Usuń blok</button>";
-  var rows = 1;
 
   html = "" +
   "<div class='page-header'>"+
@@ -200,11 +243,8 @@ function openIOBlockMenu($div) {
         } else {
           continue;
         }
-
-        // $(document).ready(function(){
-          var table = document.getElementById('table');
-          addIOTableRow(table,varname,value);
-        // });
+        var table = document.getElementById('table');
+        addIOTableRow(table,varname,value);
       }
     }
   });
@@ -226,47 +266,62 @@ function openIOBlockMenu($div) {
     });
 
     $('#saveDivButton').click(function() {
-      var blockContent = "<div class='bubble'><p><br/>";
-      var errors = "";
-
-      $("tr.move").each(function() {
-        $this = $(this);
-        var varname = $this.find("input.var").val();
-        var value = $this.find("select.value").val();
-
-        if (value == 'wczytaj') {
-          if (properVariableName(varname)) {
-            blockContent += "wczytaj("+varname+");<br/>";
-            return true;
-          }
-          errors += "Nazwa zmiennej niedozwolona ("+varname+")";
-          return true;
-        }
-
-        if (value == 'wypisz') {
-          //sprawdzanie czy to tekst do wypisania
-          if ((varname.charAt(0) == '\"') && (varname.charAt(varname.length-1) == '\"')) {
-            blockContent += "wypisz("+varname+");<br/>";
-            return true;
-          }
-
-          if (properVariableName(varname)) {
-            blockContent += "wypisz("+varname+");<br/>";
-            return true;
-          } else {
-            errors += "Nazwa zmiennej niedozwolona ("+varname+")";
-          }
-        }
-      });
-
-      blockContent += "<br/></p></div>";
-      var lines = blockContent.split("<br/>").length;
-      $div.height(lines * 15);
-      $div.width($div.height() + 80);
-      $div.html(blockContent);
-      console.log(errors);
+      saveIOBlock($div);
     });
   });
+}
+
+
+function saveProcessBlock($div) {
+  var blockContent = "<div class='bubble'><p><br/>";
+  var errors = "";
+  blockContent += $(".codeTextArea").val();
+  blockContent += "<br/></p></div>";
+  var lines = blockContent.split(";").length;
+  $div.height(10 + lines * 15);
+  $div.html(blockContent);
+}
+
+function saveIOBlock($div) {
+  var blockContent = "<div class='bubble process-skewx'><p><br/>";
+  var errors = "";
+
+  $("tr.move").each(function() {
+    $this = $(this);
+    var varname = $this.find("input.var").val();
+    var value = $this.find("select.value").val();
+
+    if (value == 'wczytaj') {
+      if (properVariableName(varname)) {
+        blockContent += "wczytaj("+varname+");<br/>";
+        return true;
+      }
+      errors += "Nazwa zmiennej niedozwolona ("+varname+")";
+      return true;
+    }
+
+    if (value == 'wypisz') {
+      //sprawdzanie czy to tekst do wypisania
+      if ((varname.charAt(0) == '\"') && (varname.charAt(varname.length-1) == '\"')) {
+        blockContent += "wypisz("+varname+");<br/>";
+        return true;
+      }
+
+      if (properVariableName(varname)) {
+        blockContent += "wypisz("+varname+");<br/>";
+        return true;
+      } else {
+        errors += "Nazwa zmiennej niedozwolona ("+varname+")";
+      }
+    }
+  });
+
+  blockContent += "<br/></p></div>";
+  var lines = blockContent.split("<br/>").length;
+  $div.height(lines * 15);
+  $div.width($div.height() + 80);
+  $div.html(blockContent);
+  console.log(errors);
 }
 
 function properVariableName(varname) {
