@@ -70,11 +70,15 @@
 .blok-decyzyjny {
   width: 100px;
   height: 100px;
-  line-height: 100px;
+  line-height: 35px;
   text-align: center;
   vertical-align: middle;
-  margin-top: 20px;
   transform:rotate(45deg);
+}
+
+
+.decision-rotate {
+  transform:rotate(-45deg);
 }
 
 .blok-procesu {

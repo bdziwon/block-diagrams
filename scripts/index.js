@@ -52,10 +52,17 @@ $(function () {
                 if ($canvasElement.hasClass('blok-wejscia-wyjscia')) {
                   insertIOBlock($canvasElement);
                 }
+                if ($canvasElement.hasClass('blok-decyzyjny')) {
+                  insertDecisionBlock($canvasElement);
+                }
             }
         }
     });
 });
+
+function insertDecisionBlock($canvasElement) {
+  blocksOnBoard.push($canvasElement);
+}
 
 function insertIOBlock($canvasElement) {
   $canvasElement.html("<p>pusty</p>");
@@ -144,7 +151,8 @@ function openDivMenu($div) {
     return;
   }
   if ($div.hasClass('blok-decyzyjny')){
-
+    openDecisionBlockMenu($div);
+    return;
   }
 
   $('#pressedBlockInfo').html("<p><button class='btn btn-danger' id='removeDivButton' type='button'>Usuń blok</button></p>");
@@ -155,6 +163,47 @@ function openDivMenu($div) {
       removeDiv($div);
     });
   });
+}
+
+function openDecisionBlockMenu($div) {
+  var html    = "";
+  var header  = "Blok decyzyjny";
+  var description   = "Umożliwia wykonywanie wyrażeń warunkowych"
+  var saveButton    = "<button class='btn btn-primary' id='saveDivButton' type='button'>Zapisz</button>";
+  var deleteButton  = "<button class='btn btn-danger' id='removeDivButton' type='button'>Usuń blok</button>";
+  html = "" +
+  "<div class='page-header'>"+
+    "<h3>"+header+"</h3>"+
+    "<p><i>"+description+"</i></p>"+
+    "<h3>"+"Opcje"+"</h3>"+
+    "<h4>"+"Wpisz wyrażenie warunkowe (bez if, z nawiasami)"+"</h4>"+
+    "<input type='text' class='decisionText form-control'>"+
+    "<div class='btn-group'>"+
+      ""+saveButton+
+      ""+deleteButton+
+    "</div>"+
+  "</div>"
+
+  $('#pressedBlockInfo').html(html);
+
+  $(document).ready(function(){
+
+    var blockContent = $div.text();
+    if (blockContent != undefined) {
+        $(".codeTextArea").text(blockContent);
+    }
+    //usuwanie diva
+    $('#removeDivButton').click(function() {
+      closeDivMenu($div);
+      removeDiv($div);
+    });
+
+    $('#saveDivButton').click(function() {
+      saveDecisionBlock($div);
+    });
+  });
+
+
 }
 
 function openProcessBlockMenu($div) {
@@ -279,6 +328,27 @@ function saveProcessBlock($div) {
   blockContent += "<br/></p></div>";
   var lines = blockContent.split(";").length;
   $div.height(10 + lines * 15);
+  $div.html(blockContent);
+}
+
+function saveDecisionBlock($div) {
+  var blockContent = "<div class='bubble decision-rotate'><p><br/>";
+  var errors = "";
+  var decisionText = $(".decisionText").val();
+  blockContent += decisionText;
+  blockContent += "<br/></p></div>";
+  size = 7 * decisionText.length;
+
+  if (size < 50) {
+    size = 50;
+  } else {
+    size += 25;
+  }
+  $div.width(size+"px");
+  $div.height(size+"px");
+  var lineHeight = 0.35 * size + "px";
+  console.log(size, lineHeight);
+  $div.css('line-height',lineHeight);
   $div.html(blockContent);
 }
 
