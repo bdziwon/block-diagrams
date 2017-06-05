@@ -352,6 +352,7 @@ function saveDecisionBlock($div) {
   $div.html(blockContent);
 }
 
+
 function saveIOBlock($div) {
   var blockContent = "<div class='bubble process-skewx'><p><br/>";
   var errors = "";
@@ -398,6 +399,8 @@ function properVariableName(varname) {
   //TODO: sprawdzanie czy nazwa zmiennej jest poprawna
   return true;
 }
+
+
 
 function openStartAndEndBlockMenu($div) {
   var html = "";
