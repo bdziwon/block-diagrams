@@ -75,7 +75,7 @@
   <div class="row">
     <div class="col-sm-2 sidenav sidenav-margins">
       <div class="row">
-        <div id="blok-startowy" class="ui-widget-content col-center blok blok-startowy">
+        <div draggable="true" id="blok-startowy" class="ui-widget-content col-center blok blok-startowy" ondrop="redrawArrows(event)">
           START/KONIEC
         </div>
       </div>
@@ -100,7 +100,17 @@
       </div>
     </div>
 
-    <div id="container" class="container-fluid content-margins" style="background-color: aquamarine; height: 1000px; margin-top: 50px ">
+    <div id="container" class="container-fluid  svg-container" style="background-color: aquamarine; height: 1000px;">
+      <svg id="SVG">
+        <marker id="circle" markerWidth="8" markerHeight="8" refX="5" refY="5">
+          <circle cx="5" cy="5" r="2" style="stroke: none; fill:#000000;"/>
+        </marker>
+        <defs>
+          <marker id="arrow" markerWidth="10" markerHeight="10" refX="0" refY="3" orient="auto" markerUnits="strokeWidth">
+            <path d="M0,0 L0,6 L4,3 z" fill="#f00" />
+          </marker>
+        </defs>
+      </svg>
     </div>
   </div>
 </div>

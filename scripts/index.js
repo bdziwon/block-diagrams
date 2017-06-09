@@ -1,5 +1,6 @@
 var blocksOnBoard = [];
 var selectedBlock = undefined;
+var arrowStart = undefined;
 
 $(function () {
     $("#blok-startowy").draggable({
@@ -42,6 +43,56 @@ $(function () {
 
                 //otwieranie prawego menu po nacisnięciu
                 $canvasElement.click(function(){
+                  if (window.event.ctrlKey) {
+
+                    if (arrowStart == undefined) {
+                      arrowStart = $canvasElement;
+                    } else {
+                      var startBlock  = $.grep(blocksOnBoard, function(e){ return e.div == arrowStart; });
+                      var endBlock    = $.grep(blocksOnBoard, function(e){ return e.div == $canvasElement; });
+                      var startBlock  = startBlock[0];
+                      var endBlock    = endBlock[0];
+
+                      if (startBlock == endBlock) {
+                        return;
+                      }
+
+                      arrowStart = undefined;
+
+                      //rysowanie strzałki
+                      var polyline = document.createElementNS('http://www.w3.org/2000/svg','polyline');
+                      var points = calculateLinePoints(startBlock, endBlock);
+
+                      polyline.setAttribute("points",points);
+                      polyline.setAttribute("marker-start","url(#circle)")
+                      polyline.setAttribute("marker-end","url(#arrow)");
+
+
+                      var arrow = {startBlock: startBlock, endBlock: endBlock, polyline: polyline};
+
+                      if (startBlock.outArrow1 == undefined) {
+                        startBlock.outArrow1 = arrow;
+                      } else
+                      if(startBlock.hasOwnProperty('outArrow2') && startBlock.outArrow2 == undefined) {
+                        startBlock.outArrow2 = arrow;
+
+                      } else {
+                        console.log("brak miejsca wyjściowego, przepinanie");
+                        if ($(startBlock.div).hasClass('blok-decyzyjny')) {
+                          removeArrow(startBlock.outArrow2);
+                          startBlock.outArrow2 = startBlock.outArrow1;
+                          startBlock.outArrow1 = arrow;
+                        } else {
+                          removeArrow(startBlock.outArrow1);
+                          startBlock.outArrow1 = arrow;
+                        }
+
+                      }
+                      endBlock.inArrows.push(arrow);
+                      document.getElementById("SVG").appendChild(polyline);
+                    }
+                    return;
+                  }
                   openDivMenu($canvasElement);
                 });
 
@@ -60,13 +111,133 @@ $(function () {
     });
 });
 
+function removeArrow(arrow) {
+  console.log(blocksOnBoard);
+
+  for (index = 0; index < blocksOnBoard.length; index++) {
+    var div = blocksOnBoard[index];
+
+    if (div.outArrow1 == arrow) {
+      blocksOnBoard[index].outArrow1 = undefined;
+    }
+    if (div.outArrow2 == arrow) {
+      blocksOnBoard[index].outArrow1 = undefined;
+    }
+
+    for (i = 0; i<div.inArrows.length; i++) {
+      if (div.inArrows[i] == arrow) {
+        div.inArrows.splice(i,1);
+      }
+    }
+  }
+
+  console.log(blocksOnBoard);
+  arrow.polyline.remove();
+}
+
+function redrawArrows(div) {
+  console.log(div);
+}
+
+
+function calculateLinePoints(startBlock, endBlock) {
+  var startPos = startBlock.div.offset();
+  var endPos   = endBlock.div.offset();
+  console.log(startPos.left,startPos.top,endPos.left,endPos.top);
+  var x1,y1,x2,y2;
+  var arrowSize = 15;
+  var offset = 15;
+
+  var bypassDistance = 20;
+
+  if ($(startBlock.div).hasClass('blok-decyzyjny')) {
+    if (startBlock.outArrow1 != undefined) {
+      console.log("Blok decyzyjny, alternative start");
+      x1 = startPos.left  - offset + startBlock.div.width();
+      y1 = startPos.top + startBlock.div.height() / 2;
+
+      x2 = endPos.left  - offset + endBlock.div.width()/2;
+      y2 = endPos.top - arrowSize;
+    } else {
+      x1 = startPos.left  - offset + startBlock.div.width() / 2;
+      y1 = startPos.top + startBlock.div.height();
+
+      x2 = endPos.left  - offset + endBlock.div.width()/2;
+      y2 = endPos.top - arrowSize;
+    }
+  } else {
+
+    x1 = startPos.left  - offset + startBlock.div.width() / 2;
+    y1 = startPos.top + startBlock.div.height();
+
+    x2 = endPos.left  - offset + endBlock.div.width()/2;
+    y2 = endPos.top - arrowSize;
+
+}
+
+
+  xhalf1 = x1;
+  yhalf1 = y1 + bypassDistance;
+
+
+  if (startPos.left > endPos.left + endBlock.div.width()) {
+    xhalf2 = endPos.left + endBlock.div.width() + bypassDistance;
+  } else {
+    xhalf2 = endPos.left - bypassDistance;
+  }
+
+  if (y2 > y1) {
+    if ((endPos.left <= startPos.left) && (endPos.left + endBlock.div.width() >= startPos.left)){
+      console.log("under 1");
+      xhalf2 = endPos.left + endBlock.div.width() / 2 - offset;
+
+    } else
+
+    if ((startPos.left <= endPos.left) && (startPos.left + startBlock.div.width() >= endPos.left)){
+      console.log("under 2");
+      xhalf2 = endPos.left + endBlock.div.width() / 2 - offset;
+    }
+
+  }
+
+  yhalf2 = yhalf1;
+
+
+
+  if ((x2 - x1 > bypassDistance) && (y2 > y1)) {
+    console.log("true-right");
+    yhalf3 = yhalf2;
+  } else
+  if ((x1 - x2 > bypassDistance) && (y2 > y1)) {
+    console.log("true-left");
+    yhalf3 = yhalf2;
+  } else {
+    yhalf3 = endPos.top - bypassDistance;
+
+  }
+
+  if (xhalf2 >= startPos.left && xhalf2 <= startPos.left + startBlock.div.width() && y1 > y2) {
+    console.log ("going-top under bypass")
+    xhalf2 = startPos.left - bypassDistance;
+  }
+
+  xhalf3 = xhalf2;
+
+  xhalf4 = x2;
+  yhalf4 = yhalf3;
+
+  return ""+x1+ "," + y1 + " " + xhalf1 + "," + yhalf1 + " " + xhalf2 + "," + yhalf2 + " " + xhalf3 + "," + yhalf3 + " " + xhalf4 + "," + yhalf4 + " " + x2 + "," + y2;
+}
+
 function insertDecisionBlock($canvasElement) {
-  blocksOnBoard.push($canvasElement);
+  var block = {div: $canvasElement, inArrows: [], outArrow1: undefined, outArrow2: undefined};
+  blocksOnBoard.push(block);
 }
 
 function insertIOBlock($canvasElement) {
   $canvasElement.html("<p>pusty</p>");
-  blocksOnBoard.push($canvasElement);
+  var block = {div: $canvasElement, inArrows: [], outArrow1: undefined};
+  blocksOnBoard.push(block);
 }
 
 function insertStartAndEndBlock($canvasElement) {
@@ -74,11 +245,11 @@ function insertStartAndEndBlock($canvasElement) {
   var text;
 
   //sprawdzanie istniejących bloków start/koniec
-  $(blocksOnBoard).each(function(i, div) {
-    if (div.hasClass('blok-startowy')) {
-      if (div.text() == "START") {
+  $(blocksOnBoard).each(function(i, block) {
+    if (block.div.hasClass('blok-startowy')) {
+      if (block.div.text() == "START") {
         sameBlocks++;
-        text = div.text();
+        text = block.div.text();
       }
     }
   });
@@ -92,19 +263,21 @@ function insertStartAndEndBlock($canvasElement) {
   //jeśli nie ma żadnego bloku to tworzymy blok startu
   if (sameBlocks == 0) {
     $canvasElement.text('START');
-    blocksOnBoard.push($canvasElement);
+    var block = {div: $canvasElement, inArrows: [], outArrow1: undefined};
+    blocksOnBoard.push(block);
     return;
   }
 
   //jeśli jest już blok startu to tworzymy blok końca
   if (text == 'START') {
     $canvasElement.text('KONIEC');
-    blocksOnBoard.push($canvasElement);
-    return;
+    var block = {div: $canvasElement, inArrows: [], outArrow1: undefined};
+    blocksOnBoard.push(block);
   } else {
     //w przeciwnym wypadku blok startu
     $canvasElement.text('START');
-    blocksOnBoard.push($canvasElement);
+    var block = {div: $canvasElement, inArrows: [], outArrow1: undefined};
+    blocksOnBoard.push(block);
     return;
   }
 }
@@ -117,8 +290,11 @@ function removeDiv($div) {
     $('#blok-startowy').removeClass('disabled-div');
 
   }
+
   //usuwanie diva z tablicy
-  blocksOnBoard.splice($.inArray($div, blocksOnBoard), 1 );
+  blocksOnBoard = blocksOnBoard.filter(function(obj) {
+    return obj.div !== $div;
+  });
 
   //usuwanie diva z widoku
   $div.remove();
