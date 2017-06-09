@@ -275,11 +275,11 @@ function calculateLinePoints(startBlock, endBlock, arrow) {
 
 
 
-  if ((x2 - x1 > bypassDistance) && (y2 > y1)) {
+  if ((x2 - x1 > bypassDistance) && (y2 - y1 > bypassDistance)) {
     console.log("true-right");
     yhalf3 = yhalf2;
   } else
-  if ((x1 - x2 > bypassDistance) && (y2 > y1)) {
+  if ((x1 - x2 > bypassDistance) && (y2 - y1 > bypassDistance)) {
     console.log("true-left");
     yhalf3 = yhalf2;
   } else {
