@@ -88,8 +88,8 @@
 polyline {
   background-color: transparent;
   fill: transparent;
-  stroke-width: 4;
-  stroke: red;
+  stroke-width: 3;
+  stroke: gray;
 }
 
 .decision-rotate {
