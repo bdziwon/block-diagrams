@@ -42,8 +42,9 @@ $(function () {
                 });
 
                 //otwieranie prawego menu po nacisnięciu
-                $canvasElement.click(function(){
-                  if (window.event.ctrlKey) {
+                $canvasElement.click(function(e){
+                  var evt = e || window.event
+                  if (evt.ctrlKey) {
 
                     if (arrowStart == undefined) {
                       arrowStart = $canvasElement;
