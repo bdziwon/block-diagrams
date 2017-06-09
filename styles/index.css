@@ -1,16 +1,43 @@
 
 .sidenav-margins {
   min-width: 300px;
-  margin-top: 60px;
+  margin-top: 50px;
   position: fixed;
+  padding-left: 30px;
 }
 .sidenav-margins-right {
   min-width: 300px;
-  margin-top: 60px;
+  margin-top: 50px;
   margin-left: 300px;
   position: fixed;
   right: 0;
 }
+
+.block-list {
+  list-style-type: none;
+  width: 100%;
+}
+.block-list li {
+  margin-top: 10px;
+  width: 100%;
+}
+
+.block-list li .blok-decyzyjny {
+  margin-top: 35px;
+
+}
+
+.block-list li .blok-wejscia-wyjscia {
+  margin-top: 35px;
+
+}
+
+.sidenav {
+  background-color: white;
+  height: 100%;
+  padding-top: 20px;
+}
+
 .content-margins {
   margin-left: 235px;
   margin-right: 300px;

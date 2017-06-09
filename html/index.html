@@ -74,23 +74,34 @@
 <div class="container-fluid">
   <div class="row">
     <div class="col-sm-2 sidenav sidenav-margins">
-      <div class="row">
-        <div draggable="true" id="blok-startowy" class="ui-widget-content col-center blok blok-startowy" ondrop="redrawArrows(event)">
-          START/KONIEC
-        </div>
-      </div>
-      <div class="row">
-        <div id="blok-procesu" class="ui-widget-content blok blok-procesu">
-        </div>
-      </div>
-      <div class="row">
-        <div id="blok-decyzyjny" class="ui-widget-content blok blok-decyzyjny">
-        </div>
-      </div>
-      <div class="row">
-        <div id="blok-wejscia-wyjscia" class="ui-widget-content blok blok-wejscia-wyjscia">
-        </div>
-      </div>
+      <ul class="block-list">
+        <li>
+          <div class="row">
+            <div draggable="true" id="blok-startowy" class="ui-widget-content col-center blok blok-startowy" ondrop="redrawArrows(event)">
+              START/KONIEC
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="row">
+            <div id="blok-procesu" class="ui-widget-content blok blok-procesu">
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="row">
+            <div id="blok-decyzyjny" class="ui-widget-content blok blok-decyzyjny">
+            </div>
+          </div>
+        </li>
+        <li>
+          <div class="row">
+            <div id="blok-wejscia-wyjscia" class="ui-widget-content blok blok-wejscia-wyjscia">
+            </div>
+          </div>
+        </li>
+    </ul>
+
     </div>
     <div class="col-sm-2 sidenav sidenav-margins-right pre-scrollable">
       <div id="pressedBlockInfo" class="row center-block">
