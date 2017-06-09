@@ -54,11 +54,12 @@ $(function () {
                   drag: function() {
                     redrawArrows($canvasElement);
                     if ($canvasElement.position().top > $(".svg-container").height() - 500) {
-                    $(".svg-container").height($(".svg-container").height()+1);
+                    $(".svg-container").height($(".svg-container").height()+5);
                   }
 
                   },
                   stop: function() {
+                    redrawArrows($canvasElement);
                   }
                 });
 
