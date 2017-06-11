@@ -262,13 +262,13 @@ function generateCode() {
     }
 
     if (currentBlock.inArrows.length > 1) {
+      console.log(currentBlock);
       for (var i = 0; i < currentBlock.inArrows.length; i++) {
-        if (currentBlock.inArrows[i].div.indexOf('do') !== -1) {
+        if (currentBlock.inArrows[i].startBlock.div.text().indexOf('do') !== -1) {
           code += indentation + "do {" + newLine;
           curlyBracesToClose++;
           indentationSize++;
           indentation = getIndentation(indentationSize, indentationScale);
-          break;
         }
       }
 
@@ -293,7 +293,6 @@ function generateCode() {
           code += indentation + "}" + newLine;
         }
       }
-      break;
     }
 
     if ($(currentBlock.div).hasClass('blok-wejscia-wyjscia')) {
