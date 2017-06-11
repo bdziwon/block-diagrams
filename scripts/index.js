@@ -37,11 +37,13 @@ $(function () {
                 $canvas.append($canvasElement);
 
                 var scrollTop     = $(window).scrollTop(),
-                    elementOffset = ui.position.top + scrollTop,
+                    elementOffset = ui.position.top + scrollTop + 40,
                     distance      = (elementOffset - scrollTop);
 
+                var leftPos = ui.position.left - (ui.position.left % 20);
+
                 $canvasElement.css({
-                    left: (ui.position.left),
+                    left: leftPos,
                     top: elementOffset,
                     position: 'absolute'
                 });
@@ -59,6 +61,17 @@ $(function () {
 
                   },
                   stop: function() {
+
+                    if (!$canvasElement.hasClass('blok-decyzyjny') && !$canvasElement.hasClass('blok-wejscia-wyjscia')) {
+                      var center = $canvasElement.position().left + $canvasElement.width()/2;
+                      var leftPosOffset = center % 30;
+                      var leftPos =  $canvasElement.position().left - leftPosOffset;
+
+                      $canvasElement.css({
+                        left: leftPos
+                      });
+                    }
+
                     redrawArrows($canvasElement);
                   }
                 });
@@ -72,6 +85,13 @@ $(function () {
                     } else {
                       var startBlock  = $.grep(blocksOnBoard, function(e){ return e.div == arrowStart; });
                       var endBlock    = $.grep(blocksOnBoard, function(e){ return e.div == $canvasElement; });
+
+                      if (endBlock[0].inArrows.length > 0) {
+                        if (!startBlock[0].div.hasClass("blok-decyzyjny") && !endBlock[0].div.hasClass("blok-decyzyjny")) {
+                          return;
+                        }
+                      }
+
                       var startBlock  = startBlock[0];
                       var endBlock    = endBlock[0];
 
@@ -139,6 +159,179 @@ $(function () {
     });
 });
 
+function generateCode() {
+  var code = "";
+  var currentBlock  = $.grep(blocksOnBoard, function(e){ return (e.div.hasClass('blok-startowy')) && e.div.text() == "START"; });
+  var endBlocks  = $.grep(blocksOnBoard, function(e){ return (e.div.hasClass('blok-startowy')) && e.div.text() == "KONIEC"; });
+  var curlyBracesToClose = 0;
+  var indentationSize = 0;
+  var indentationScale = 4;
+  var indentation = "";
+  var doneBlocks = [];
+  var newLine = "\n";
+  var endLoop = 0;
+
+  currentBlock = currentBlock[0];
+  endBlocks = endBlocks[0];
+
+
+  // sprawdzanie czy istnieje start i koniec
+  if(currentBlock == undefined) {
+    console.log("brak elementu startowego");
+    return;
+  }
+  // if (endBlocks == undefined) {
+  //   console.log("brak elementu końcowego");
+  //   return;
+  // }
+
+  //Generowanie pustej klasy
+
+  var indentation = getIndentation(indentationSize, indentationScale);
+  code += indentation+"public class Main { "+newLine;
+  indentationSize += 1;
+
+  indentation = getIndentation(indentationSize, indentationScale);
+  code += indentation+"public static void main(String[] args) { "+newLine;
+  indentationSize += 1;
+
+  indentation = getIndentation(indentationSize, indentationScale);
+
+  curlyBracesToClose += 2;
+  console.log(currentBlock);
+  while (currentBlock.outArrow1 != undefined) {
+    var previousBlock = currentBlock;
+    if (endLoop == 1) {
+      endLoop = 0;
+      currentBlock = currentBlock.outArrow2.endBlock;
+    } else {
+      currentBlock = currentBlock.outArrow1.endBlock;
+    }
+
+    if ($(currentBlock.div).hasClass('blok-decyzyjny')) {
+      var blockContent = $(currentBlock.div).text();
+      if (blockContent.indexOf("do") !== -1) {
+          indentationSize--;
+          indentation = getIndentation(indentationSize, indentationScale);
+          var re = /\((.*)\)/;
+          var inBraces  = blockContent.match(re)[1];
+          code += indentation + "} while ("+inBraces+");" + newLine;
+          curlyBracesToClose--;
+          continue;
+      }
+      if (blockContent.indexOf("while") !== -1) {
+          var block  = $.grep(doneBlocks, function(e){ return (e == currentBlock)});
+          if (block.length == 0) {
+            var re = /\((.*)\)/;
+            var inBraces  = blockContent.match(re)[1];
+            code += indentation + "while("+inBraces+") { " + newLine;
+            curlyBracesToClose++;
+            indentationSize++;
+            indentation = getIndentation(indentationSize, indentationScale);
+            doneBlocks.push(currentBlock);
+          } else {
+            indentationSize--;
+            indentation = getIndentation(indentationSize, indentationScale);
+            code += indentation + "}" + newLine;
+            curlyBracesToClose--;
+            endLoop = 1;
+          }
+          continue;
+      }
+
+      if (blockContent.indexOf("for") !== -1) {
+          var block  = $.grep(doneBlocks, function(e){ return (e == currentBlock)});
+          if (block.length == 0) {
+            var re = /\((.*)\)/;
+            var inBraces  = blockContent.match(re)[1];
+            code += indentation + "for("+inBraces+") { " + newLine;
+            curlyBracesToClose++;
+            indentationSize++;
+            indentation = getIndentation(indentationSize, indentationScale);
+            doneBlocks.push(currentBlock);
+          } else {
+            indentationSize--;
+            indentation = getIndentation(indentationSize, indentationScale);
+            code += indentation + "}" + newLine;
+            curlyBracesToClose--;
+            endLoop = 1;
+          }
+
+      }
+      continue;
+    }
+
+    if (currentBlock.inArrows.length > 1) {
+      for (var i = 0; i < currentBlock.inArrows.length; i++) {
+        if (currentBlock.inArrows[i].div.indexOf('do') !== -1) {
+          code += indentation + "do {" + newLine;
+          curlyBracesToClose++;
+          indentationSize++;
+          indentation = getIndentation(indentationSize, indentationScale);
+          break;
+        }
+      }
+
+    }
+
+    if ($(currentBlock.div).hasClass('blok-procesu')) {
+      console.log('Przetwarzanie: blok-procesu');
+      var blockContent = $(currentBlock.div).text();
+      var lines = blockContent.split(/\r?\n/);
+      for (i = 0; i < lines.length; i++) {
+        code += indentation+lines[i] + newLine;
+      }
+      continue;
+    }
+
+    if ($(currentBlock.div).hasClass('blok-startowy')) {
+      if (currentBlock.div.text() == 'KONIEC') {
+        code += indentation + "return;" + newLine;
+        for (var i = 0; i < curlyBracesToClose; i++) {
+          indentationSize--;
+          indentation = getIndentation(indentationSize, indentationScale);
+          code += indentation + "}" + newLine;
+        }
+      }
+      break;
+    }
+
+    if ($(currentBlock.div).hasClass('blok-wejscia-wyjscia')) {
+      console.log('Przetwarzanie: blok-wejscia-wyjscia');
+      var blockContent = $(currentBlock.div).text();
+      var lines = blockContent.split(";");
+      for (i = 0; i < lines.length - 1; i++) {
+        var re = /\((.*)\)/;
+        var inBraces  = lines[i].match(re)[1];
+        var words     = lines[i].split('(');
+        if (words[0].indexOf('wypisz') !== -1) {
+          code += indentation + "System.out.println("+inBraces+");" + newLine;
+        } else {
+          code += indentation + inBraces + " = (new Scanner(System.in)).next();"+newLine;
+        }
+      }
+      continue;
+    }
+  }
+
+
+  console.log(code);
+
+
+
+
+
+}
+
+
+function getIndentation(indentationSize, indentationScale) {
+  var indentation = "";
+  for (i=1; i<=indentationSize * indentationScale; i++) {
+      indentation += " ";
+  }
+  return indentation;
+}
+
 function removeArrows(div) {
 
   var startBlock  = $.grep(blocksOnBoard, function(e){ return e.div == div; });
@@ -182,6 +375,7 @@ function removeArrow(arrow) {
 
   arrow.polyline.remove();
 }
+
 
 function redrawArrows(div) {
 
@@ -422,15 +616,23 @@ function openDivMenu($div) {
       closeDivMenu($div);
       removeDiv($div);
     });
+
+    $('#removeArrowsButton').click(function() {
+        removeArrows($div);
+    });
+
   });
 }
 
 function openDecisionBlockMenu($div) {
-  var html    = "";
-  var header  = "Blok decyzyjny";
-  var description   = "Umożliwia wykonywanie wyrażeń warunkowych"
-  var saveButton    = "<button class='btn btn-primary' id='saveDivButton' type='button'>Zapisz</button>";
-  var deleteButton  = "<button class='btn btn-danger' id='removeDivButton' type='button'>Usuń blok</button>";
+  var html                = "";
+  var header              = "Blok decyzyjny";
+  var description         = "Umożliwia wykonywanie wyrażeń warunkowych"
+  var saveButton          = "<button class='btn btn-primary' id='saveDivButton' type='button'>Zapisz</button>";
+  var deleteButton        = "<button class='btn btn-danger' id='removeDivButton' type='button'>Usuń blok</button>";
+  var removeArrowsButton  = "<button class='btn btn-danger' id='removeArrowsButton' type='button'>Usuń strzałki</button>";
+
+
   html = "" +
   "<div class='page-header'>"+
     "<h3>"+header+"</h3>"+
@@ -438,9 +640,19 @@ function openDecisionBlockMenu($div) {
     "<h3>"+"Opcje"+"</h3>"+
     "<h4>"+"Wpisz wyrażenie warunkowe (bez if, z nawiasami)"+"</h4>"+
     "<input type='text' class='decisionText form-control'>"+
+    "<h4>"+"Wybierz typ wyrażenia:"+"</h4>"+
+    "<select class='form-control value'>"+
+      "<option value='if'>if</option>"+
+      "<option value='for'>for</option>"+
+      "<option value='while'>while</option>"+
+      "<option value='do'>do</option>"+
+    "</select>"+
     "<div class='btn-group'>"+
       ""+saveButton+
+    "</div>"+
+    "<div class='btn-group'>"+
       ""+deleteButton+
+      ""+removeArrowsButton+
     "</div>"+
   "</div>"
 
@@ -450,12 +662,21 @@ function openDecisionBlockMenu($div) {
 
     var blockContent = $div.text();
     if (blockContent != undefined) {
-        $(".codeTextArea").text(blockContent);
+        var words = blockContent.split(" ");
+        $(".decisionText").val(words[1]);
+        var value = words[0];
+        value = value.substring(0, value.length - 1);
+        $(".value option[value='"+value+"']").attr("selected","selected");
+
     }
     //usuwanie diva
     $('#removeDivButton').click(function() {
       closeDivMenu($div);
       removeDiv($div);
+    });
+
+    $('#removeArrowsButton').click(function() {
+        removeArrows($div);
     });
 
     $('#saveDivButton').click(function() {
@@ -467,11 +688,13 @@ function openDecisionBlockMenu($div) {
 }
 
 function openProcessBlockMenu($div) {
-  var html    = "";
-  var header  = "Blok procesu";
-  var description   = "Umożliwia takie działania jak deklaracja zmiennych, przypisywanie, oraz działania arytmetyczno-logiczne"
-  var saveButton    = "<button class='btn btn-primary' id='saveDivButton' type='button'>Zapisz</button>";
-  var deleteButton  = "<button class='btn btn-danger' id='removeDivButton' type='button'>Usuń blok</button>";
+  var html                = "";
+  var header              = "Blok procesu";
+  var description         = "Umożliwia takie działania jak deklaracja zmiennych, przypisywanie, oraz działania arytmetyczno-logiczne"
+  var saveButton          = "<button class='btn btn-primary' id='saveDivButton' type='button'>Zapisz</button>";
+  var deleteButton        = "<button class='btn btn-danger' id='removeDivButton' type='button'>Usuń blok</button>";
+  var removeArrowsButton  = "<button class='btn btn-danger' id='removeArrowsButton' type='button'>Usuń strzałki</button>";
+
   html = "" +
   "<div class='page-header'>"+
     "<h3>"+header+"</h3>"+
@@ -482,7 +705,11 @@ function openProcessBlockMenu($div) {
     "<textarea class='codeTextArea'></textarea>"+
     "<div class='btn-group'>"+
       ""+saveButton+
+    "</div>"+
+    "<br />"+
+    "<div class='btn-group'>"+
       ""+deleteButton+
+      ""+removeArrowsButton+
     "</div>"+
   "</div>"
 
@@ -496,10 +723,15 @@ function openProcessBlockMenu($div) {
     if (blockContent != undefined) {
         $(".codeTextArea").text(blockContent);
     }
+
     //usuwanie diva
     $('#removeDivButton').click(function() {
       closeDivMenu($div);
       removeDiv($div);
+    });
+
+    $('#removeArrowsButton').click(function() {
+        removeArrows($div);
     });
 
     $('#saveDivButton').click(function() {
@@ -515,6 +747,8 @@ function openIOBlockMenu($div) {
   var description = "Umożliwia m.in. wczytywanie danych od użytkownika.";
   var saveButton = "<button class='btn btn-primary' id='saveDivButton' type='button'>Zapisz</button>";
   var deleteButton = "<button class='btn btn-danger' id='removeDivButton' type='button'>Usuń blok</button>";
+  var removeArrowsButton  = "<button class='btn btn-danger' id='removeArrowsButton' type='button'>Usuń strzałki</button>";
+
 
   html = "" +
   "<div class='page-header'>"+
@@ -536,7 +770,10 @@ function openIOBlockMenu($div) {
     "</button></p>"+
     "<div class='btn-group'>"+
       ""+saveButton+
+    "</div>"+
+    "<div class='btn-group'>"+
       ""+deleteButton+
+      ""+removeArrowsButton+
     "</div>"+
   "<div>";
 
@@ -565,6 +802,10 @@ function openIOBlockMenu($div) {
     $('#removeDivButton').click(function() {
       closeDivMenu($div);
       removeDiv($div);
+    });
+
+    $('#removeArrowsButton').click(function() {
+        removeArrows($div);
     });
 
     //dodawanie wiersza
@@ -596,9 +837,16 @@ function saveDecisionBlock($div) {
   var blockContent = "<div class='bubble decision-rotate'><p><br/>";
   var errors = "";
   var decisionText = $(".decisionText").val();
+  var decisionType = $(".value").val();
+
+  var decisionText = decisionType + ": " + decisionText;
+  decisionText = escapeHtml(decisionText);
+
   blockContent += decisionText;
   blockContent += "<br/></p></div>";
+  console.log(blockContent);
   size = 7 * decisionText.length;
+
 
   if (size < 50) {
     size = 50;
@@ -613,6 +861,18 @@ function saveDecisionBlock($div) {
   $div.html(blockContent);
   redrawArrows($div);
 
+}
+
+function escapeHtml(text) {
+  var map = {
+    '&': '&amp;',
+    '<': '&lt;',
+    '>': '&gt;',
+    '"': '&quot;',
+    "'": '&#039;'
+  };
+
+  return text.replace(/[&<>"']/g, function(m) { return map[m]; });
 }
 
 
@@ -674,6 +934,8 @@ function openStartAndEndBlockMenu($div) {
   var header = "";
   var description = "";
   var deleteButton = "";
+  var removeArrowsButton = "";
+
   if ($div.text() == "START") {
     header = "Blok START";
     description = "Stanowi początek algorytmu, może być tylko jeden";
@@ -681,14 +943,19 @@ function openStartAndEndBlockMenu($div) {
     header = "Blok KONIEC";
     description = "Stanowi koniec algorytmu";
   }
-  deleteButton = "<p><button class='btn btn-danger' id='removeDivButton' type='button'>Usuń blok</button></p>";
+  deleteButton        = "<p><button class='btn btn-danger' id='removeDivButton' type='button'>Usuń blok</button></p>";
+  removeArrowsButton  = "<button class='btn btn-danger' id='removeArrowsButton' type='button'>Usuń strzałki</button>";
+
 
   html = "" +
   "<div class='page-header'>"+
     "<h3>"+header+"</h3>"+
     "<p><i>"+description+"</i></p>"+
     "<h3>"+"Opcje"+"</h3>"+
+    "<div class='btn-group'>"+
     ""+deleteButton+
+    ""+removeArrowsButton+
+    "</div>"+
   "<div>";
 
   $('#pressedBlockInfo').html(html);
@@ -699,6 +966,11 @@ function openStartAndEndBlockMenu($div) {
       closeDivMenu($div);
       removeDiv($div);
     });
+
+    $('#removeArrowsButton').click(function() {
+        removeArrows($div);
+    });
+
   });
 }
 
