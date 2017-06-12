@@ -422,13 +422,22 @@ function generateCode() {
       continue;
     }
   }
-  alert(code);
-  console.log(code);
+    alert(code);
+    console.log(code);
 
     var generate = document.getElementById("generuj");
     var file = new Blob([code], { type: 'plain/text'});
-    generate.href = URL.createObjectURL(file);
-    generate.download = 'Main.java';
+
+    if (confirm("Czy chcesz pobrac kod ?") == true){
+        generate.href = URL.createObjectURL(file);
+        generate.download = 'kod.txt';
+    }
+
+    else {
+
+
+    }
+
 }
 
 
