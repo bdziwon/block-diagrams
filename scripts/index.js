@@ -412,7 +412,7 @@ function generateCode() {
     var file = new Blob([code], { type: 'plain/text'});
     generate.href = URL.createObjectURL(file);
     generate.download = 'kod.txt';
-
+    confirm("Czy chcesz pobrac kod ?");
 
 
 }
