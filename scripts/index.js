@@ -86,11 +86,11 @@ $(function () {
                       var startBlock  = $.grep(blocksOnBoard, function(e){ return e.div == arrowStart; });
                       var endBlock    = $.grep(blocksOnBoard, function(e){ return e.div == $canvasElement; });
 
-                      if (endBlock[0].inArrows.length > 0) {
-                        if (!startBlock[0].div.hasClass("blok-decyzyjny") && !endBlock[0].div.hasClass("blok-decyzyjny")) {
-                          return;
-                        }
-                      }
+                      // if (endBlock[0].inArrows.length > 0) {
+                      //   if (!startBlock[0].div.hasClass("blok-decyzyjny") && !endBlock[0].div.hasClass("blok-decyzyjny")) {
+                      //     return;
+                      //   }
+                      // }
 
                       var startBlock  = startBlock[0];
                       var endBlock    = endBlock[0];
@@ -170,7 +170,8 @@ function generateCode() {
   var doneBlocks = [];
   var newLine = "\n";
   var endLoop = 0;
-
+  var insideIf = 0;
+  var ifStack = new Array();
   currentBlock = currentBlock[0];
   endBlocks = endBlocks[0];
 
@@ -198,7 +199,7 @@ function generateCode() {
   indentation = getIndentation(indentationSize, indentationScale);
 
   curlyBracesToClose += 2;
-  console.log(currentBlock);
+
   while (currentBlock.outArrow1 != undefined) {
     var previousBlock = currentBlock;
     if (endLoop == 1) {
@@ -209,8 +210,38 @@ function generateCode() {
     }
 
     if ($(currentBlock.div).hasClass('blok-decyzyjny')) {
+      console.log("przetwarzanie blok-decyzyjny");
       var blockContent = $(currentBlock.div).text();
+
+
+      if (insideIf > 0) {
+        console.log("-- działanie dla poprzedniego if:");
+        if (previousBlock.outArrow1 != currentBlock.inArrows[0] && previousBlock.outArrow2 != currentBlock.inArrows[0]) {
+          var block = ifStack.pop();
+          if (block != undefined) {
+            console.log('---- Otwieram else');
+            currentBlock = block;
+            endLoop = 1;
+            indentationSize--;
+            indentation = getIndentation(indentationSize, indentationScale);
+            code += indentation + "} else {" + newLine;
+            indentationSize++;
+            indentation = getIndentation(indentationSize, indentationScale);
+            continue;
+          } else {
+            insideIf--;
+            console.log('---- Zamykam else');
+            indentationSize--;
+            indentation = getIndentation(indentationSize, indentationScale);
+            code += indentation + "}" + newLine;
+            curlyBracesToClose--;
+          }
+          console.log("---- brak działania, if był przetworzony.");
+        }
+      }
+
       if (blockContent.indexOf("do") !== -1) {
+          console.log("-- zamykam pętlę do");
           indentationSize--;
           indentation = getIndentation(indentationSize, indentationScale);
           var re = /\((.*)\)/;
@@ -220,8 +251,10 @@ function generateCode() {
           continue;
       }
       if (blockContent.indexOf("while") !== -1) {
+        console.log("-- while");
           var block  = $.grep(doneBlocks, function(e){ return (e == currentBlock)});
           if (block.length == 0) {
+            console.log("---- otwieram while");
             var re = /\((.*)\)/;
             var inBraces  = blockContent.match(re)[1];
             code += indentation + "while("+inBraces+") { " + newLine;
@@ -230,6 +263,7 @@ function generateCode() {
             indentation = getIndentation(indentationSize, indentationScale);
             doneBlocks.push(currentBlock);
           } else {
+            console.log("---- zamykam while");
             indentationSize--;
             indentation = getIndentation(indentationSize, indentationScale);
             code += indentation + "}" + newLine;
@@ -237,6 +271,18 @@ function generateCode() {
             endLoop = 1;
           }
           continue;
+      }
+
+      if (blockContent.indexOf("if") !== -1) {
+        console.log("-- otwieram if");
+        insideIf++;
+        var re = /\((.*)\)/;
+        var inBraces  = blockContent.match(re)[1];
+        code += indentation + "if("+inBraces+") { " + newLine;
+        curlyBracesToClose++;
+        indentationSize++;
+        indentation = getIndentation(indentationSize, indentationScale);
+        ifStack.push(currentBlock);
       }
 
       if (blockContent.indexOf("for") !== -1) {
@@ -263,15 +309,44 @@ function generateCode() {
 
     if (currentBlock.inArrows.length > 1) {
       console.log(currentBlock);
+      var isDoLoop = 0;
       for (var i = 0; i < currentBlock.inArrows.length; i++) {
         if (currentBlock.inArrows[i].startBlock.div.text().indexOf('do') !== -1) {
           code += indentation + "do {" + newLine;
           curlyBracesToClose++;
           indentationSize++;
           indentation = getIndentation(indentationSize, indentationScale);
+          isDoLoop = 1;
         }
       }
-
+      if (isDoLoop == 0) {
+        var block = ifStack.pop();
+        if (block != undefined) {
+          var usedBlock  = $.grep(doneBlocks, function(e){ return (e == currentBlock)});
+          if (usedBlock.length == 0) {
+            console.log('zamykam if, otwieram else 2')
+            doneBlocks.push(currentBlock);
+            currentBlock = block;
+            endLoop = 1;
+            indentationSize--;
+            indentation = getIndentation(indentationSize, indentationScale);
+            code += indentation + "} else {" + newLine;
+            insideIf--;
+            indentationSize++;
+            indentation = getIndentation(indentationSize, indentationScale);
+            continue;
+          }
+        } else {
+          var usedBlock  = $.grep(doneBlocks, function(e){ return (e == currentBlock)});
+          if (usedBlock.length != 0) {
+            console.log('zamykam else');
+            indentationSize--;
+            indentation = getIndentation(indentationSize, indentationScale);
+            code += indentation + "}" + newLine;
+            curlyBracesToClose--;
+          }
+        }
+      }
     }
 
     if ($(currentBlock.div).hasClass('blok-procesu')) {
@@ -285,7 +360,25 @@ function generateCode() {
     }
 
     if ($(currentBlock.div).hasClass('blok-startowy')) {
+      console.log("przetwarzanie blok-startowy");
       if (currentBlock.div.text() == 'KONIEC') {
+        console.log("--KONIEC");
+        var block = ifStack.pop();
+        if (block != undefined) {
+          console.log("----Powrót do if, wstawiam return, otwieram else");
+          doneBlocks.push(currentBlock);
+          currentBlock = block;
+          endLoop = 1;
+          code += indentation + "return;" + newLine;
+          indentationSize--;
+          indentation = getIndentation(indentationSize, indentationScale);
+          code += indentation + "} else {" + newLine;
+          insideIf--;
+          indentationSize++;
+          indentation = getIndentation(indentationSize, indentationScale);
+          continue;
+        }
+        console.log("----Wstawiam return, zamykam klamry");
         code += indentation + "return;" + newLine;
         for (var i = 0; i < curlyBracesToClose; i++) {
           indentationSize--;
@@ -315,8 +408,6 @@ function generateCode() {
 
 
   console.log(code);
-
-
 
 
 
@@ -501,6 +592,40 @@ function insertProcessBlock($canvasElement) {
 function insertDecisionBlock($canvasElement) {
   var block = {div: $canvasElement, inArrows: [], outArrow1: undefined, outArrow2: undefined};
   blocksOnBoard.push(block);
+
+  var blockContent = "<div class='bubble decision-rotate'><p><br/>";
+  var decisionText = "(true)"
+  var decisionType = "if";
+
+  if (decisionText.length == 0 ) {
+    decisionText == "true";
+  }
+
+  if (decisionText.charAt(0) != "(") {
+    decisionText = "(" + decisionText;
+  }
+  if (decisionText.charAt(decisionText.length-1) != ")") {
+    decisionText = decisionText + ")";
+  }
+
+  var decisionText = decisionType + ": " + decisionText;
+  decisionText = escapeHtml(decisionText);
+
+  blockContent += decisionText;
+  blockContent += "<br/></p></div>";
+  size = (6 * decisionText.length) + 20;
+
+  if (size < 50) {
+    size = 50;
+  } else {
+    size += 25;
+  }
+  block.div.width(size+"px");
+  block.div.height(size+"px");
+  var lineHeight = 0.35 * size + "px";
+  console.log(size, lineHeight);
+  block.div.css('line-height',lineHeight);
+  block.div.html(blockContent);
 }
 
 function insertIOBlock($canvasElement) {
@@ -838,13 +963,24 @@ function saveDecisionBlock($div) {
   var decisionText = $(".decisionText").val();
   var decisionType = $(".value").val();
 
+  if (decisionText.length == 0 ) {
+    decisionText == "true";
+  }
+
+  if (decisionText.charAt(0) != "(") {
+    decisionText = "(" + decisionText;
+  }
+  if (decisionText.charAt(decisionText.length-1) != ")") {
+    decisionText = decisionText + ")";
+  }
+
   var decisionText = decisionType + ": " + decisionText;
   decisionText = escapeHtml(decisionText);
 
   blockContent += decisionText;
   blockContent += "<br/></p></div>";
   console.log(blockContent);
-  size = 7 * decisionText.length;
+  size = (6 * decisionText.length) + 20;
 
 
   if (size < 50) {
