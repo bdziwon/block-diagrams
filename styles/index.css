@@ -134,8 +134,8 @@ polyline {
   vertical-align: middle;
   margin-top: 20px;
   line-height: 15px;
-  overflow-y: auto;
-  overflow-x: auto;
+  overflow-y: hidden;
+  overflow-x: hidden;
   white-space: pre-wrap;
 
 }

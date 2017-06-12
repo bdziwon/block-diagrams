@@ -248,6 +248,15 @@ function generateCode() {
           var inBraces  = blockContent.match(re)[1];
           code += indentation + "} while ("+inBraces+");" + newLine;
           curlyBracesToClose--;
+
+          var arrow1EndBlock = currentBlock.outArrow1.endBlock;
+          var block  = $.grep(doneBlocks, function(e){ return (e == arrow1EndBlock)});
+          if (block.length != 0) {
+            var temp = currentBlock.outArrow1;
+            currentBlock.outArrow1 = currentBlock.outArrow2;
+            currentBlock.outArrow2 = temp;
+            continue;
+          }
           continue;
       }
       if (blockContent.indexOf("while") !== -1) {
@@ -274,6 +283,11 @@ function generateCode() {
       }
 
       if (blockContent.indexOf("if") !== -1) {
+        var block  = $.grep(doneBlocks, function(e){ return (e == currentBlock)});
+        if (block.length != 0) {
+          console.log("-- pomijam przetworzony if");
+          continue;
+        }
         console.log("-- otwieram if");
         insideIf++;
         var re = /\((.*)\)/;
@@ -282,6 +296,7 @@ function generateCode() {
         curlyBracesToClose++;
         indentationSize++;
         indentation = getIndentation(indentationSize, indentationScale);
+        doneBlocks.push(currentBlock);
         ifStack.push(currentBlock);
       }
 
@@ -351,6 +366,7 @@ function generateCode() {
 
     if ($(currentBlock.div).hasClass('blok-procesu')) {
       console.log('Przetwarzanie: blok-procesu');
+      doneBlocks.push(currentBlock);
       var blockContent = $(currentBlock.div).text();
       var lines = blockContent.split(/\r?\n/);
       for (i = 0; i < lines.length; i++) {
@@ -390,6 +406,7 @@ function generateCode() {
 
     if ($(currentBlock.div).hasClass('blok-wejscia-wyjscia')) {
       console.log('Przetwarzanie: blok-wejscia-wyjscia');
+      doneBlocks.push(currentBlock);
       var blockContent = $(currentBlock.div).text();
       var lines = blockContent.split(";");
       for (i = 0; i < lines.length - 1; i++) {
@@ -945,14 +962,39 @@ function openIOBlockMenu($div) {
   });
 }
 
+function getTextWidth(text, font) {
+    // re-use canvas object for better performance
+    var canvas = getTextWidth.canvas || (getTextWidth.canvas = document.createElement("canvas"));
+    var context = canvas.getContext("2d");
+    context.font = font;
+    var metrics = context.measureText(text);
+    return metrics.width;
+}
 
 function saveProcessBlock($div) {
+  var codeContent = $(".codeTextArea").val();
   var blockContent = "<div class='bubble'><p><br/>";
   var errors = "";
   blockContent += $(".codeTextArea").val();
   blockContent += "<br/></p></div>";
   var lines = blockContent.split(";").length;
+  var blockContentLines = codeContent.split(";")
+  console.log(blockContentLines);
+  if (blockContentLines.length > 1) {
+    var longestRow = blockContentLines[0];
+    for(i = 1; i<blockContentLines.length; i++) {
+      if (blockContentLines[i].length > maxLength) {
+        longestRow = blockContentLines[i];
+      }
+    }
+  }
+
+  console.log(maxLength);
+
   $div.height(10 + lines * 15);
+  $div.css("font","10pt arial");
+  var width = getTextWidth(longestRow,"10pt arial");
+  $div.width(20 + width);
   $div.html(blockContent);
   redrawArrows($div);
 }
@@ -980,18 +1022,13 @@ function saveDecisionBlock($div) {
   blockContent += decisionText;
   blockContent += "<br/></p></div>";
   console.log(blockContent);
-  size = (6 * decisionText.length) + 20;
 
+  $div.css("font","10pt arial");
+  var width = getTextWidth(decisionText,"10pt arial");
+  $div.width(20 +  width + "px");
+  $div.height(20 + width + "px");
 
-  if (size < 50) {
-    size = 50;
-  } else {
-    size += 25;
-  }
-  $div.width(size+"px");
-  $div.height(size+"px");
-  var lineHeight = 0.35 * size + "px";
-  console.log(size, lineHeight);
+  var lineHeight = 0.35 * (width + 20) + "px";
   $div.css('line-height',lineHeight);
   $div.html(blockContent);
   redrawArrows($div);
@@ -1015,10 +1052,16 @@ function saveIOBlock($div) {
   var blockContent = "<div class='bubble process-skewx'><p><br/>";
   var errors = "";
 
+  var longestVarname = "";
+
   $("tr.move").each(function() {
     $this = $(this);
     var varname = $this.find("input.var").val();
     var value = $this.find("select.value").val();
+
+    if (varname.length > longestVarname.length) {
+      longestVarname = varname;
+    }
 
     if (value == 'wczytaj') {
       if (properVariableName(varname)) {
@@ -1049,7 +1092,9 @@ function saveIOBlock($div) {
   blockContent += "<br/></p></div>";
   var lines = blockContent.split("<br/>").length;
   $div.height(lines * 15);
-  $div.width($div.height() + 80);
+  $div.css("font","10pt arial");
+  var width = getTextWidth(longestVarname,"10pt arial");
+  $div.width(100 +  width + "px");
   $div.html(blockContent);
   console.log(errors);
 
@@ -1058,7 +1103,6 @@ function saveIOBlock($div) {
 }
 
 function properVariableName(varname) {
-  //TODO: sprawdzanie czy nazwa zmiennej jest poprawna
   return true;
 }
 
