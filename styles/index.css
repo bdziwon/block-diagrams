@@ -158,17 +158,6 @@ polyline {
   /*transform: skewX( 45deg );*/
 }
 
-
-.disabled-div {
-    /*pointer-events: none;*/
-    opacity: 0.4;
-}
-
-.enabled-div {
-  /*pointer-events: all;*/
-  opacity: 1;
-}
-
 button {
   margin-right: 3px;
 }

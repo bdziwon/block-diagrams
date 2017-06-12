@@ -40,6 +40,7 @@ $(function () {
                     elementOffset = ui.position.top + scrollTop + 40,
                     distance      = (elementOffset - scrollTop);
 
+                //wyrównywanie do grida % 20
                 var leftPos = ui.position.left - (ui.position.left % 20);
 
                 $canvasElement.css({
@@ -55,6 +56,7 @@ $(function () {
                   },
                   drag: function() {
                     redrawArrows($canvasElement);
+                    //rozszerzanie na dół po przeciąganiu
                     if ($canvasElement.position().top > $(".svg-container").height() - 500) {
                     $(".svg-container").height($(".svg-container").height()+5);
                   }
@@ -63,6 +65,7 @@ $(function () {
                   stop: function() {
 
                     if (!$canvasElement.hasClass('blok-decyzyjny') && !$canvasElement.hasClass('blok-wejscia-wyjscia')) {
+                      //wyrównywanie położenia bloków
                       var center = $canvasElement.position().left + $canvasElement.width()/2;
                       var leftPosOffset = center % 30;
                       var leftPos =  $canvasElement.position().left - leftPosOffset;
@@ -78,6 +81,8 @@ $(function () {
 
                 $canvasElement.click(function(e){
                   var evt = e || window.event
+
+                  //łączenie liniami z ctrl
                   if (evt.ctrlKey) {
 
                     if (arrowStart == undefined) {
@@ -86,17 +91,21 @@ $(function () {
                       var startBlock  = $.grep(blocksOnBoard, function(e){ return e.div == arrowStart; });
                       var endBlock    = $.grep(blocksOnBoard, function(e){ return e.div == $canvasElement; });
 
-                      // if (endBlock[0].inArrows.length > 0) {
-                      //   if (!startBlock[0].div.hasClass("blok-decyzyjny") && !endBlock[0].div.hasClass("blok-decyzyjny")) {
-                      //     return;
-                      //   }
-                      // }
-
                       var startBlock  = startBlock[0];
                       var endBlock    = endBlock[0];
 
+                      //blokowanie strzałki do siebie
                       if (startBlock == endBlock) {
+                        arrowStart = undefined;
                         return;
+                      }
+
+                      //blokowanie powracania do bloku startowego
+                      if (endBlock.div.hasClass('blok-startowy')) {
+                        if (endBlock.div.text() == "START") {
+                          arrowStart = undefined;
+                          return;
+                        }
                       }
 
                       arrowStart = undefined;
@@ -106,6 +115,7 @@ $(function () {
                       var arrow = {startBlock: startBlock, endBlock: endBlock, polyline: polyline};
 
                       //blok-decyzyjny
+                      //jeśli jest więcej niż 2 strzałki, to usuwa obie i tworzy nową
                       if ($(startBlock.div).hasClass('blok-decyzyjny')) {
                         if (startBlock.outArrow1 == undefined) {
                           startBlock.outArrow1 = arrow;
@@ -118,6 +128,7 @@ $(function () {
                           removeArrow(startBlock.outArrow2);
                           startBlock.outArrow1 = arrow;
                         }
+
                       } else
                       //blok zwykly
                       if (startBlock.outArrow1 == undefined) {
@@ -127,21 +138,24 @@ $(function () {
                         startBlock.outArrow1 = arrow;
                       }
 
+                      //obliczanie punktów (6)
                       var points = calculateLinePoints(startBlock, endBlock, arrow);
 
                       polyline.setAttribute("points",points);
                       polyline.setAttribute("marker-start","url(#circle)")
                       polyline.setAttribute("marker-end","url(#arrow)");
 
+                      //dodanie strzałki do tablicy końcowego
                       endBlock.inArrows.push(arrow);
                       document.getElementById("SVG").appendChild(polyline);
                     }
                     return;
                   }
+                  //po naciśnięciu bez controla, otwieranie prawego menu
                   openDivMenu($canvasElement);
                 });
 
-                //dodawanie bloku start/koniec
+                //dodawanie bloków  do tablicy blocksOnBoard;
                 if ($canvasElement.hasClass('blok-startowy')) {
                   insertStartAndEndBlock($canvasElement);
                 }
@@ -160,31 +174,49 @@ $(function () {
 });
 
 function generateCode() {
+  //kod wynikowy
   var code = "";
+
   var currentBlock  = $.grep(blocksOnBoard, function(e){ return (e.div.hasClass('blok-startowy')) && e.div.text() == "START"; });
   var endBlocks  = $.grep(blocksOnBoard, function(e){ return (e.div.hasClass('blok-startowy')) && e.div.text() == "KONIEC"; });
+
+  //nawiasy {} do zamknięcia
   var curlyBracesToClose = 0;
+
+  //rozmiar i skala wcięć
   var indentationSize = 0;
   var indentationScale = 4;
+
+  //zmienne tymczasowe
   var indentation = "";
-  var doneBlocks = [];
   var newLine = "\n";
+
+  //bloki przetworzone
+  var doneBlocks = [];
+
+  //kończenie pętli
   var endLoop = 0;
+
+  //w odgałęzieniu if
   var insideIf = 0;
+
+  //stos ifów
   var ifStack = new Array();
+
   currentBlock = currentBlock[0];
   endBlocks = endBlocks[0];
 
 
   // sprawdzanie czy istnieje start i koniec
   if(currentBlock == undefined) {
-    console.log("brak elementu startowego");
+    alert("Brak elementu startowego.");
     return;
   }
-  // if (endBlocks == undefined) {
-  //   console.log("brak elementu końcowego");
-  //   return;
-  // }
+
+  if (endBlocks == undefined) {
+    alert("Brak elementu końcowego");
+    return;
+  }
 
   //Generowanie pustej klasy
 
@@ -202,6 +234,8 @@ function generateCode() {
 
   while (currentBlock.outArrow1 != undefined) {
     var previousBlock = currentBlock;
+
+    //przejście drugą strzałką
     if (endLoop == 1) {
       endLoop = 0;
       currentBlock = currentBlock.outArrow2.endBlock;
@@ -212,7 +246,6 @@ function generateCode() {
     if ($(currentBlock.div).hasClass('blok-decyzyjny')) {
       console.log("przetwarzanie blok-decyzyjny");
       var blockContent = $(currentBlock.div).text();
-
 
       if (insideIf > 0) {
         console.log("-- działanie dla poprzedniego if:");
@@ -440,6 +473,8 @@ function generateCode() {
 }
 
 
+
+//generowanie wcięcia
 function getIndentation(indentationSize, indentationScale) {
   var indentation = "";
   for (i=1; i<=indentationSize * indentationScale; i++) {
@@ -448,6 +483,7 @@ function getIndentation(indentationSize, indentationScale) {
   return indentation;
 }
 
+//usuwanie strzałek
 function removeArrows(div) {
 
   var startBlock  = $.grep(blocksOnBoard, function(e){ return e.div == div; });
