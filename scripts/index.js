@@ -427,10 +427,21 @@ function generateCode() {
 
     var generate = document.getElementById("generuj");
     var file = new Blob([code], { type: 'plain/text'});
+<<<<<<< HEAD
     generate.href = URL.createObjectURL(file);
     generate.download = 'Main.java';
+=======
+>>>>>>> refs/remotes/origin/master
 
+    if (confirm("Czy chcesz pobrac kod ?") == true){
+        generate.href = URL.createObjectURL(file);
+        generate.download = 'kod.txt';
+    }
 
+   else {
+      
+
+    }
 
 }
 
