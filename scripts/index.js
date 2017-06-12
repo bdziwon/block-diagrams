@@ -428,7 +428,7 @@ function generateCode() {
     var generate = document.getElementById("generuj");
     var file = new Blob([code], { type: 'plain/text'});
     generate.href = URL.createObjectURL(file);
-    generate.download = 'kod.txt';
+    generate.download = 'Main.java';
 
 
 
@@ -987,13 +987,11 @@ function saveProcessBlock($div) {
   if (blockContentLines.length > 1) {
     var longestRow = blockContentLines[0];
     for(i = 1; i<blockContentLines.length; i++) {
-      if (blockContentLines[i].length > maxLength) {
+      if (blockContentLines[i].length > longestRow.length) {
         longestRow = blockContentLines[i];
       }
     }
   }
-
-  console.log(maxLength);
 
   $div.height(10 + lines * 15);
   $div.css("font","10pt arial");
